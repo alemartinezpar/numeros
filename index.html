@@ -561,33 +561,91 @@ function openNumber(n) {
   });
 
   show('detail');
-  playTone(d.freq);
+  // No reproducir audio automáticamente (Chrome lo bloquea sin interacción del usuario)
+  // El audio se activa al pulsar el botón 🔊 Escuchar
 }
 
 // ── SOUND ────────────────────────────────────────────
+// AudioContext compartido para evitar el límite de Chrome
+let sharedAudioCtx = null;
+
+function getAudioCtx() {
+  if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+    sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  // Chrome suspende el contexto si no hay interacción previa
+  if (sharedAudioCtx.state === 'suspended') {
+    sharedAudioCtx.resume();
+  }
+  return sharedAudioCtx;
+}
+
 function playTone(freq) {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioCtx();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
     osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, ctx.currentTime);
     gain.gain.setValueAtTime(0.4, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-    osc.start(); osc.stop(ctx.currentTime + 0.6);
-  } catch(e) {}
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.8);
+  } catch(e) {
+    console.warn('Audio error:', e);
+  }
 }
 
-function playSound() {
+// Esperar a que las voces estén cargadas en Chrome
+function getVoices() {
+  return new Promise(resolve => {
+    let voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) { resolve(voices); return; }
+    // Chrome carga las voces de forma asíncrona
+    window.speechSynthesis.onvoiceschanged = () => {
+      voices = window.speechSynthesis.getVoices();
+      resolve(voices);
+    };
+    // Timeout de seguridad: si no cargan en 1 segundo, resolver con array vacío
+    setTimeout(() => resolve(window.speechSynthesis.getVoices()), 1000);
+  });
+}
+
+async function playSound() {
   const words = ['uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez'];
-  if ('speechSynthesis' in window) {
-    const u = new SpeechSynthesisUtterance(words[currentN - 1]);
-    u.lang = 'es-ES'; u.rate = 0.8; u.pitch = 1.2;
-    window.speechSynthesis.speak(u);
-  } else {
+  const word = words[currentN - 1];
+
+  if (!('speechSynthesis' in window)) {
     playTone(DATA[currentN].freq);
+    return;
   }
+
+  // Cancelar cualquier síntesis previa (fix importante para Chrome)
+  window.speechSynthesis.cancel();
+
+  const voices = await getVoices();
+
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = 'es-ES';
+  u.rate = 0.75;
+  u.pitch = 1.2;
+  u.volume = 1;
+
+  // Buscar voz en español (Chrome tiene varias disponibles)
+  const esVoice = voices.find(v => v.lang.startsWith('es')) || null;
+  if (esVoice) u.voice = esVoice;
+
+  u.onerror = () => {
+    // Si speechSynthesis falla, usar tono como fallback
+    playTone(DATA[currentN].freq);
+  };
+
+  // Fix para Chrome: a veces se queda bloqueado sin pausa
+  setTimeout(() => {
+    window.speechSynthesis.speak(u);
+  }, 100);
 }
 
 // ── VIDEO ─────────────────────────────────────────────

@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Los Números</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c1: #FF6B6B; --c2: #FFD93D; --c3: #6BCB77; --c4: #4D96FF; --c5: #C77DFF;
+  --bg: #FFF8F0;
+  --shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── STARS BACKGROUND ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(255,107,107,.08) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(77,150,255,.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(107,203,119,.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+.screen.active { display: flex; }
+
+/* ── HOME ── */
+#home { background: linear-gradient(160deg, #fff8f0 0%, #ffecd2 100%); }
+.home-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(3rem, 8vw, 6rem);
+  color: #333;
+  text-align: center;
+  margin-bottom: 10px;
+  animation: bounce-in 0.7s cubic-bezier(.36,.07,.19,.97);
+}
+.home-subtitle {
+  font-size: 1.3rem;
+  color: #888;
+  margin-bottom: 50px;
+  text-align: center;
+}
+.numbers-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 700px;
+}
+.num-btn {
+  width: 120px; height: 120px;
+  border: none; border-radius: 28px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 4rem;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 8px 0 rgba(0,0,0,0.15), var(--shadow);
+  transition: all 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.num-btn::after {
+  content: '';
+  position: absolute; top: 8px; left: 12px; right: 12px; height: 30%;
+  background: rgba(255,255,255,.25);
+  border-radius: 20px;
+}
+.num-btn:hover { transform: translateY(-4px) scale(1.05); }
+.num-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
+.num-btn[data-n="1"] { background: var(--c1); }
+.num-btn[data-n="2"] { background: var(--c2); color: #333; }
+.num-btn[data-n="3"] { background: var(--c3); }
+.num-btn[data-n="4"] { background: var(--c4); }
+.num-btn[data-n="5"] { background: var(--c5); }
+
+/* ── NUMBER DETAIL SCREEN ── */
+#detail { padding: 16px; gap: 0; justify-content: flex-start; }
+.detail-header {
+  width: 100%; display: flex; align-items: center; gap: 12px;
+  padding: 12px 0 20px;
+}
+.back-btn {
+  background: white; border: none; border-radius: 14px;
+  padding: 10px 18px; font-family: 'Nunito', sans-serif;
+  font-size: 1rem; font-weight: 700; cursor: pointer;
+  box-shadow: var(--shadow); transition: all 0.15s;
+  color: #555;
+}
+.back-btn:hover { transform: translateY(-2px); }
+
+.detail-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 16px;
+  width: 100%;
+  max-width: 900px;
+}
+
+.big-number-card {
+  grid-column: 1; grid-row: 1 / 3;
+  border-radius: 28px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 30px 20px;
+  box-shadow: var(--shadow);
+  position: relative; overflow: hidden;
+  min-height: 280px;
+}
+.big-number {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(8rem, 15vw, 14rem);
+  line-height: 1;
+  color: white;
+  text-shadow: 0 6px 0 rgba(0,0,0,0.15);
+  animation: pop-in 0.4s cubic-bezier(.36,.07,.19,.97);
+}
+.number-word {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2.5rem;
+  color: rgba(255,255,255,0.85);
+  margin-top: 8px;
+}
+.sound-btn {
+  margin-top: 20px;
+  background: rgba(255,255,255,0.25);
+  border: 3px solid rgba(255,255,255,0.5);
+  border-radius: 50px;
+  padding: 12px 28px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.2rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sound-btn:hover { background: rgba(255,255,255,0.4); transform: scale(1.05); }
+
+.objects-card {
+  grid-column: 2; grid-row: 1;
+  background: white;
+  border-radius: 28px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.objects-card h3 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.3rem; color: #555;
+  margin-bottom: 14px;
+}
+.objects-grid {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  align-items: center; justify-content: center;
+}
+.obj-emoji {
+  font-size: 3rem;
+  animation: pop-in 0.3s cubic-bezier(.36,.07,.19,.97) both;
+  filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.1));
+  cursor: default;
+  transition: transform 0.2s;
+}
+.obj-emoji:hover { transform: scale(1.3) rotate(-5deg); }
+
+.actions-card {
+  grid-column: 2; grid-row: 2;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.action-btn {
+  border: none; border-radius: 20px;
+  padding: 16px 20px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.2rem;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 5px 0 rgba(0,0,0,0.15);
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 10px;
+}
+.action-btn:hover { transform: translateY(-3px); }
+.action-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.15); }
+.btn-video { background: #FF6B6B; }
+.btn-game  { background: #6BCB77; }
+.btn-write { background: #4D96FF; }
+
+/* ── VIDEO MODAL ── */
+.modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 100;
+  align-items: center; justify-content: center;
+}
+.modal.open { display: flex; }
+.modal-inner {
+  background: white; border-radius: 24px;
+  padding: 24px; max-width: 720px; width: 95%;
+  position: relative;
+}
+.modal-close {
+  position: absolute; top: -16px; right: -16px;
+  background: #FF6B6B; color: white;
+  border: none; border-radius: 50%;
+  width: 44px; height: 44px;
+  font-size: 1.4rem; cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.modal-inner iframe {
+  width: 100%; aspect-ratio: 16/9;
+  border: none; border-radius: 12px;
+}
+
+/* ── GAME SCREEN ── */
+#game { background: linear-gradient(160deg, #f0fff4 0%, #d4edda 100%); }
+.game-question {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  color: #333; text-align: center;
+  margin-bottom: 30px;
+}
+.game-objects {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  justify-content: center; margin-bottom: 40px;
+  max-width: 500px;
+}
+.game-obj {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  animation: pop-in 0.3s cubic-bezier(.36,.07,.19,.97) both;
+}
+.game-answers {
+  display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+}
+.ans-btn {
+  width: 90px; height: 90px;
+  border: none; border-radius: 22px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 2.8rem;
+  color: white; cursor: pointer;
+  box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+  transition: all 0.15s;
+}
+.ans-btn:hover { transform: translateY(-4px) scale(1.1); }
+.ans-btn[data-n="1"] { background: var(--c1); }
+.ans-btn[data-n="2"] { background: var(--c2); color: #333; }
+.ans-btn[data-n="3"] { background: var(--c3); }
+.ans-btn[data-n="4"] { background: var(--c4); }
+.ans-btn[data-n="5"] { background: var(--c5); }
+.ans-btn.correct { animation: celebrate 0.5s; background: #6BCB77 !important; color: white !important; }
+.ans-btn.wrong   { animation: shake 0.4s; background: #FF6B6B !important; color: white !important; }
+
+.game-score {
+  margin-top: 28px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.4rem; color: #555;
+}
+.game-score span { color: #6BCB77; }
+
+/* ── TRAZO SCREEN (escritura) ── */
+#trazo { background: linear-gradient(160deg, #f0f4ff 0%, #d4dbff 100%); }
+.trazo-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2rem; color: #333;
+  margin-bottom: 20px;
+}
+.trazo-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+.trazo-guide {
+  font-family: 'Fredoka One', cursive;
+  font-size: 12rem;
+  color: rgba(0,0,0,0.08);
+  position: absolute;
+  user-select: none; pointer-events: none;
+  line-height: 1;
+}
+.trazo-canvas {
+  border-radius: 24px;
+  background: white;
+  box-shadow: var(--shadow);
+  cursor: crosshair;
+  position: relative;
+  touch-action: none;
+}
+.trazo-btns { display: flex; gap: 12px; }
+.trazo-btn {
+  border: none; border-radius: 16px; padding: 12px 24px;
+  font-family: 'Fredoka One', cursive; font-size: 1.1rem;
+  color: white; cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+  transition: all 0.15s;
+}
+.trazo-btn:hover { transform: translateY(-2px); }
+.t-clear { background: #FF6B6B; }
+.t-back  { background: #999; }
+
+/* ── FEEDBACK OVERLAY ── */
+.feedback {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  pointer-events: none; opacity: 0;
+  transition: opacity 0.3s;
+}
+.feedback.show { opacity: 1; pointer-events: all; }
+.feedback-emoji { font-size: 8rem; animation: bounce-in 0.4s; }
+.feedback-text {
+  font-family: 'Fredoka One', cursive;
+  font-size: 3rem; color: white;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  margin-top: 10px;
+}
+.feedback.correct-fb { background: rgba(107,203,119,0.92); }
+.feedback.wrong-fb   { background: rgba(255,107,107,0.92); }
+
+/* ── CONFETTI ── */
+.confetti-piece {
+  position: fixed;
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  animation: confetti-fall 1.2s ease-in forwards;
+  pointer-events: none; z-index: 300;
+}
+@keyframes confetti-fall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* ── ANIMATIONS ── */
+@keyframes bounce-in {
+  0%   { transform: scale(0.3); opacity: 0; }
+  60%  { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes pop-in {
+  0%   { transform: scale(0); opacity: 0; }
+  80%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes celebrate {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.3) rotate(10deg); }
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .detail-body { grid-template-columns: 1fr; grid-template-rows: auto; }
+  .big-number-card { grid-column: 1; grid-row: 1; min-height: 200px; }
+  .objects-card { grid-column: 1; grid-row: 2; }
+  .actions-card { grid-column: 1; grid-row: 3; }
+  .big-number { font-size: 7rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ HOME ══ -->
+<div id="home" class="screen active">
+  <div class="home-title">🔢 Los Números</div>
+  <div class="home-subtitle">¡Elige un número para aprender!</div>
+  <div class="numbers-grid">
+    <button class="num-btn" data-n="1" onclick="openNumber(1)">1</button>
+    <button class="num-btn" data-n="2" onclick="openNumber(2)">2</button>
+    <button class="num-btn" data-n="3" onclick="openNumber(3)">3</button>
+    <button class="num-btn" data-n="4" onclick="openNumber(4)">4</button>
+    <button class="num-btn" data-n="5" onclick="openNumber(5)">5</button>
+    <button class="num-btn" data-n="6" onclick="openNumber(6)" style="background:#FF9F43;">6</button>
+    <button class="num-btn" data-n="7" onclick="openNumber(7)" style="background:#1dd1a1;">7</button>
+    <button class="num-btn" data-n="8" onclick="openNumber(8)" style="background:#ee5a24;">8</button>
+    <button class="num-btn" data-n="9" onclick="openNumber(9)" style="background:#0652DD;">9</button>
+    <button class="num-btn" data-n="10" onclick="openNumber(10)" style="background:#833471;font-size:2.8rem;">10</button>
+  </div>
+  <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:30px;">
+    <button class="action-btn btn-game" onclick="startGameMode(5)" style="font-size:1.1rem;padding:14px 24px;">🎮 Contar del 1 al 5</button>
+    <button class="action-btn btn-game" onclick="startGameMode(10)" style="font-size:1.1rem;padding:14px 24px;background:#4D96FF;">🎮 Contar del 1 al 10</button>
+  </div>
+</div>
+
+<!-- ══ DETAIL ══ -->
+<div id="detail" class="screen">
+  <div class="detail-header">
+    <button class="back-btn" onclick="goHome()">← Volver</button>
+    <span id="detail-crumb" style="font-weight:700; color:#888; font-size:1rem;">Número 1</span>
+  </div>
+  <div class="detail-body">
+    <div class="big-number-card" id="detail-card">
+      <div class="big-number" id="detail-num">1</div>
+      <div class="number-word" id="detail-word">UNO</div>
+      <button class="sound-btn" onclick="playSound()">🔊 Escuchar</button>
+    </div>
+    <div class="objects-card">
+      <h3>¿Cuántos hay? 👀</h3>
+      <div class="objects-grid" id="detail-objects"></div>
+    </div>
+    <div class="actions-card">
+      <button class="action-btn btn-video" onclick="openVideo()">📺 Ver vídeo</button>
+      <button class="action-btn btn-game" onclick="startGameMode(5)">🎮 Contar del 1 al 5</button>
+      <button class="action-btn btn-game" onclick="startGameMode(10)" style="background:#4D96FF;">🎮 Contar del 1 al 10</button>
+      <button class="action-btn btn-write" onclick="openTrazo()">✏️ Practicar escritura</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GAME ══ -->
+<div id="game" class="screen">
+  <div class="detail-header" style="width:100%; max-width:600px;">
+    <button class="back-btn" onclick="goHome()">← Volver</button>
+    <span id="game-title" style="font-weight:700; color:#888;">¡A contar!</span>
+  </div>
+  <div class="game-question" id="game-q">¿Cuántos hay?</div>
+  <div class="game-objects" id="game-objects"></div>
+  <div class="game-answers" id="game-answers"></div>
+  <div class="game-score">Puntos: <span id="score">0</span></div>
+</div>
+
+<!-- ══ TRAZO ══ -->
+<div id="trazo" class="screen">
+  <div class="detail-header" style="width:100%; max-width:500px;">
+    <button class="back-btn" onclick="goDetail()">← Volver</button>
+  </div>
+  <div class="trazo-title" id="trazo-title">Escribe el número 1</div>
+  <div class="trazo-wrap" style="position:relative;">
+    <div class="trazo-guide" id="trazo-guide">1</div>
+    <canvas class="trazo-canvas" id="trazo-canvas" width="340" height="340"></canvas>
+  </div>
+  <div class="trazo-btns" style="margin-top:16px;">
+    <button class="trazo-btn t-clear" onclick="clearCanvas()">🗑️ Borrar</button>
+    <button class="trazo-btn t-back"  onclick="goDetail()">← Volver</button>
+  </div>
+</div>
+
+<!-- ══ VIDEO MODAL ══ -->
+<div id="video-modal" class="modal">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeVideo()">✕</button>
+    <iframe id="yt-frame" src="" allowfullscreen></iframe>
+  </div>
+</div>
+
+<!-- ══ FEEDBACK ══ -->
+<div class="feedback" id="feedback">
+  <div class="feedback-emoji" id="fb-emoji">⭐</div>
+  <div class="feedback-text" id="fb-text">¡Muy bien!</div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+const DATA = {
+  1: {
+    word: 'UNO',
+    color: '#FF6B6B',
+    objects: ['🍎'],
+    video: 'https://www.youtube.com/embed/6gp2GQNM9Kg',
+    freq: 261.63
+  },
+  2: {
+    word: 'DOS',
+    color: '#FFD93D',
+    objects: ['⚽','⚽'],
+    video: 'https://www.youtube.com/embed/6gp2GQNM9Kg',
+    freq: 293.66
+  },
+  3: {
+    word: 'TRES',
+    color: '#6BCB77',
+    objects: ['🎈','🎈','🎈'],
+    video: 'https://www.youtube.com/embed/6gp2GQNM9Kg',
+    freq: 329.63
+  },
+  4: {
+    word: 'CUATRO',
+    color: '#4D96FF',
+    objects: ['🌟','🌟','🌟','🌟'],
+    video: 'https://www.youtube.com/embed/6gp2GQNM9Kg',
+    freq: 349.23
+  },
+  5: {
+    word: 'CINCO',
+    color: '#C77DFF',
+    objects: ['🦋','🦋','🦋','🦋','🦋'],
+    video: 'https://www.youtube.com/embed/6gp2GQNM9Kg',
+    freq: 392.00
+  },
+  6: { word:'SEIS',  color:'#FF9F43', objects:['🍓','🍓','🍓','🍓','🍓','🍓'],                          freq:440.00 },
+  7: { word:'SIETE', color:'#1dd1a1', objects:['🌈','🌈','🌈','🌈','🌈','🌈','🌈'],                     freq:493.88 },
+  8: { word:'OCHO',  color:'#ee5a24', objects:['🐙','🐙','🐙','🐙','🐙','🐙','🐙','🐙'],               freq:523.25 },
+  9: { word:'NUEVE', color:'#0652DD', objects:['🌙','🌙','🌙','🌙','🌙','🌙','🌙','🌙','🌙'],          freq:587.33 },
+  10:{ word:'DIEZ',  color:'#833471', objects:['🎉','🎉','🎉','🎉','🎉','🎉','🎉','🎉','🎉','🎉'],     freq:659.25 }
+};
+
+// YouTube vídeos por número (cuenta regresiva / canciones infantiles)
+const VIDEOS = {
+  1:'https://www.youtube.com/watch?v=xptJydxwG00',
+  2:'https://www.youtube.com/watch?v=i4e2bwFd1nc',
+  3:'https://www.youtube.com/watch?v=nY-TkOFJgU8',
+  4:'https://www.youtube.com/watch?v=aNnAQ7DvgdY',
+  5:'https://www.youtube.com/watch?v=TpVP5wpuUsw',
+  6:'https://www.youtube.com/watch?v=aApx1wOz-84',
+  7:'https://www.youtube.com/watch?v=TiRSeRit3Bo',
+  8:'https://www.youtube.com/watch?v=ZFRl_XMFJDY',
+  9:'https://www.youtube.com/watch?v=cYqvQQH5Smc',
+  10:'https://www.youtube.com/watch?v=28s-WuMO0d0'
+};
+
+// Objetos variados para el juego (aleatorios)
+const ALL_EMOJIS = ['🍎','⚽','🎈','🌟','🦋','🐶','🐱','🐸','🍭','🚀','🌈','🎵','🍓','🐠','🌻'];
+
+let currentN = 1;
+let score = 0;
+let prevScreen = 'home';
+
+// ── NAVIGATION ────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome() {
+  closeVideo();
+  show('home');
+  prevScreen = 'home';
+}
+
+function goDetail() {
+  show('detail');
+  prevScreen = 'detail';
+}
+
+// ── OPEN NUMBER ──────────────────────────────────────
+function openNumber(n) {
+  currentN = n;
+  const d = DATA[n];
+  prevScreen = 'detail';
+
+  document.getElementById('detail-crumb').textContent = 'Número ' + n;
+  document.getElementById('detail-num').textContent = n;
+  document.getElementById('detail-word').textContent = d.word;
+
+  const card = document.getElementById('detail-card');
+  card.style.background = `linear-gradient(135deg, ${d.color}, ${d.color}cc)`;
+
+  // objects
+  const og = document.getElementById('detail-objects');
+  og.innerHTML = '';
+  d.objects.forEach((em, i) => {
+    const span = document.createElement('span');
+    span.className = 'obj-emoji';
+    span.textContent = em;
+    span.style.animationDelay = (i * 0.1) + 's';
+    og.appendChild(span);
+  });
+
+  show('detail');
+  playTone(d.freq);
+}
+
+// ── SOUND ────────────────────────────────────────────
+function playTone(freq) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.start(); osc.stop(ctx.currentTime + 0.6);
+  } catch(e) {}
+}
+
+function playSound() {
+  const words = ['uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez'];
+  if ('speechSynthesis' in window) {
+    const u = new SpeechSynthesisUtterance(words[currentN - 1]);
+    u.lang = 'es-ES'; u.rate = 0.8; u.pitch = 1.2;
+    window.speechSynthesis.speak(u);
+  } else {
+    playTone(DATA[currentN].freq);
+  }
+}
+
+// ── VIDEO ─────────────────────────────────────────────
+function openVideo() { window.open(VIDEOS[currentN], '_blank'); }
+function closeVideo() {
+  document.getElementById('yt-frame').src = '';
+  document.getElementById('video-modal').classList.remove('open');
+}
+
+// ── GAME ─────────────────────────────────────────────
+let correctAnswer = 1;
+let gameTimer = null;
+
+let gameMode = 5;
+let gameFromN = 0;
+
+function startGame() { startGameMode(5); }
+
+function startGameMode(mode) {
+  gameMode = mode;
+  gameFromN = currentN;
+  score = 0;
+  document.getElementById('score').textContent = 0;
+  var t = document.getElementById('game-title');
+  if (t) t.textContent = 'Contar del 1 al ' + mode;
+  show('game');
+  nextQuestion();
+}
+
+function backFromGame() {
+  if (gameFromN > 0) { openNumber(gameFromN); } else { goHome(); }
+}
+
+function nextQuestion() {
+  correctAnswer = Math.floor(Math.random() * gameMode) + 1;
+  var emoji = ALL_EMOJIS[Math.floor(Math.random() * ALL_EMOJIS.length)];
+  var bgColors = ['#FF6B6B','#FFD93D','#6BCB77','#4D96FF','#C77DFF','#FF9F43','#1dd1a1','#ee5a24','#0652DD','#833471'];
+
+  var go = document.getElementById('game-objects');
+  go.innerHTML = '';
+  for (var i = 0; i < correctAnswer; i++) {
+    var sp = document.createElement('span');
+    sp.className = 'game-obj';
+    sp.textContent = emoji;
+    sp.style.fontSize = gameMode <= 5 ? '3.5rem' : '2.8rem';
+    sp.style.animationDelay = (i * 0.06) + 's';
+    go.appendChild(sp);
+  }
+
+  var ga = document.getElementById('game-answers');
+  ga.innerHTML = '';
+  var btnSize = gameMode <= 5 ? '100px' : '80px';
+  var btnFont = gameMode <= 5 ? '3.5rem' : '2.8rem';
+  var numColors = ['#FF6B6B','#FFD93D','#6BCB77','#4D96FF','#C77DFF','#FF9F43','#1dd1a1','#ee5a24','#0652DD','#833471'];
+  var numTextColors = ['white','#333','white','white','white','white','white','white','white','white'];
+  for (var n = 1; n <= gameMode; n++) {
+    var btn = document.createElement('button');
+    btn.textContent = n;
+    btn.className = 'num-btn';
+    btn.style.width = btnSize;
+    btn.style.height = btnSize;
+    btn.style.fontSize = btnFont;
+    btn.style.background = numColors[n-1];
+    btn.style.color = numTextColors[n-1];
+    btn.style.boxShadow = '0 6px 0 rgba(0,0,0,0.15)';
+    btn.dataset.num = n;
+    btn.addEventListener('click', (function(num){ return function(){ checkAnswer(num, this); }; })(n));
+    ga.appendChild(btn);
+  }
+}
+
+function checkAnswer(n, btn) {
+  var btns = document.getElementById('game-answers').querySelectorAll('button');
+  btns.forEach(function(b){ b.onclick = null; });
+
+  if (n === correctAnswer) {
+    score++;
+    document.getElementById('score').textContent = score;
+    btn.style.background = '#6BCB77';
+    btn.style.color = 'white';
+    btn.style.transform = 'scale(1.3)';
+    showFeedback(true);
+    confetti();
+    setTimeout(nextQuestion, 1500);
+  } else {
+    btn.style.background = '#FF4040';
+    btn.style.color = 'white';
+    btns.forEach(function(b){
+      if (parseInt(b.dataset.num) === correctAnswer) {
+        b.style.background = '#6BCB77';
+        b.style.color = 'white';
+        b.style.transform = 'scale(1.1)';
+      }
+    });
+    showFeedback(false);
+    setTimeout(nextQuestion, 1800);
+  }
+}
+
+// ── FEEDBACK ─────────────────────────────────────────
+function showFeedback(correct) {
+  const fb = document.getElementById('feedback');
+  document.getElementById('fb-emoji').textContent = correct ? '⭐' : '😊';
+  document.getElementById('fb-text').textContent = correct ? '¡Muy bien!' : '¡Inténtalo!';
+  fb.className = 'feedback show ' + (correct ? 'correct-fb' : 'wrong-fb');
+  setTimeout(() => { fb.className = 'feedback'; }, 900);
+}
+
+// ── CONFETTI ──────────────────────────────────────────
+function confetti() {
+  const colors = ['#FF6B6B','#FFD93D','#6BCB77','#4D96FF','#C77DFF','#FF9F43'];
+  for (let i = 0; i < 30; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.className = 'confetti-piece';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.top = '-20px';
+      p.style.background = colors[Math.floor(Math.random() * colors.length)];
+      p.style.animationDuration = (0.8 + Math.random() * 0.8) + 's';
+      p.style.animationDelay = Math.random() * 0.3 + 's';
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 1500);
+    }, i * 30);
+  }
+}
+
+// ── TRAZO / ESCRITURA ────────────────────────────────
+let drawing = false;
+let lastX = 0, lastY = 0;
+let ctx2d;
+
+function openTrazo() {
+  document.getElementById('trazo-title').textContent = 'Escribe el número ' + currentN;
+  document.getElementById('trazo-guide').textContent = currentN;
+  document.getElementById('trazo-guide').style.color = DATA[currentN].color + '22';
+  show('trazo');
+  initCanvas();
+}
+
+function initCanvas() {
+  const canvas = document.getElementById('trazo-canvas');
+  ctx2d = canvas.getContext('2d');
+  ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+  ctx2d.strokeStyle = DATA[currentN].color;
+  ctx2d.lineWidth = 14;
+  ctx2d.lineCap = 'round';
+  ctx2d.lineJoin = 'round';
+
+  // Mouse
+  canvas.onmousedown = e => { drawing = true; [lastX, lastY] = getPos(canvas, e); };
+  canvas.onmousemove = e => { if (!drawing) return; draw(canvas, e); };
+  canvas.onmouseup = canvas.onmouseleave = () => drawing = false;
+
+  // Touch
+  canvas.ontouchstart = e => {
+    e.preventDefault();
+    drawing = true;
+    [lastX, lastY] = getPos(canvas, e.touches[0]);
+  };
+  canvas.ontouchmove = e => {
+    e.preventDefault();
+    if (!drawing) return;
+    draw(canvas, e.touches[0]);
+  };
+  canvas.ontouchend = () => drawing = false;
+}
+
+function getPos(canvas, e) {
+  const r = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / r.width;
+  const scaleY = canvas.height / r.height;
+  return [(e.clientX - r.left) * scaleX, (e.clientY - r.top) * scaleY];
+}
+
+function draw(canvas, e) {
+  const [x, y] = getPos(canvas, e);
+  ctx2d.beginPath();
+  ctx2d.moveTo(lastX, lastY);
+  ctx2d.lineTo(x, y);
+  ctx2d.stroke();
+  [lastX, lastY] = [x, y];
+}
+
+function clearCanvas() {
+  const canvas = document.getElementById('trazo-canvas');
+  ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// ── CLOSE MODAL ON OUTSIDE CLICK ─────────────────────
+document.getElementById('video-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeVideo();
+});
+</script>
+</body>
+</html>
